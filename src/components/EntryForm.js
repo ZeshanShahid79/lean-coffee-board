@@ -3,7 +3,11 @@ import ScreenReaderOnly from './ScreenReaderOnly.js';
 
 export default function EntryForm({ onSubmit }) {
   return (
-    <Form onSubmit={handleSubmit} aria-labelledby="entry-form-name">
+    <Form
+      autoComplete="off"
+      onSubmit={handleSubmit}
+      aria-labelledby="entry-form-name"
+    >
       <label htmlFor="text">
         <ScreenReaderOnly>Entry text</ScreenReaderOnly>
       </label>
@@ -25,6 +29,7 @@ export default function EntryForm({ onSubmit }) {
     const form = event.target;
     const inputElement = form.elements.text;
     onSubmit(inputElement.value);
+    form.reset();
   }
 }
 

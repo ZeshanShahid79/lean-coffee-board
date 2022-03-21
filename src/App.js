@@ -1,11 +1,15 @@
 import styled from 'styled-components';
-import useSWR from 'swr';
 import Entry from './components/Entry';
 import EntryForm from './components/EntryForm';
+import useSWR from 'swr';
+import CreateAuthor from './components/CreateAuthor';
+import { useState } from 'react';
 
 const fetcher = (...args) => fetch(...args).then(res => res.json());
 
 export default function App() {
+  const [authorName, setAuthorName] = useState('');
+  const [authorColor, setAuthorColor] = useState('');
   const {
     data: entries,
     error: entriesError,
@@ -16,26 +20,42 @@ export default function App() {
 
   if (entriesError) return <h1>Sorry, could not fetch.</h1>;
 
-  return (
-    <Grid>
+  return authorName ? (
+    <>
       <h1>Lean Coffee Board</h1>
       <EntryList role="list">
         {entries
-          ? entries.map(({ text, author, _id }) => (
-              <li key={_id}>
-                <Entry text={text} author={author} />
+          ? entries.map(({ text, author, _id, color, tempId, createdAt }) => (
+              <li key={_id ?? tempId}>
+                <Entry
+                  text={text}
+                  author={author}
+                  color={color}
+                  _id={_id}
+                  onClick={() => handleDeleteEntry(_id)}
+                  createdAt={createdAt}
+                />
               </li>
             ))
           : '... loading ...'}
       </EntryList>
       <EntryForm onSubmit={handleNewEntry} />
-    </Grid>
+    </>
+  ) : (
+    <CreateAuthor onSubmit={handleAuthorInput} />
   );
+
+  function handleAuthorInput(author, color) {
+    setAuthorName(author);
+    setAuthorColor(color);
+  }
 
   async function handleNewEntry(text) {
     const newEntry = {
       text,
-      author: 'Anonymous',
+      author: authorName,
+      color: authorColor,
+      tempId: Math.random(),
     };
 
     mutateEntries([...entries, newEntry], false);
@@ -50,20 +70,25 @@ export default function App() {
 
     mutateEntries();
   }
-}
 
-const Grid = styled.div`
-  display: grid;
-  height: 100vh;
-  padding: 0 20px 12px;
-  grid-template-rows: auto 1fr auto;
-`;
+  async function handleDeleteEntry(_id) {
+    const filteredEntries = entries.filter(entry => entry._id !== _id);
+    mutateEntries(filteredEntries, false);
+
+    await fetch('/api/entries', {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ _id }),
+    });
+    mutateEntries();
+  }
+}
 
 const EntryList = styled.ul`
   display: grid;
   gap: 20px;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  grid-auto-rows: 100px;
   list-style: none;
   padding: 0;
 `;
