@@ -25,7 +25,7 @@ export default function App() {
       <h1>Lean Coffee Board</h1>
       <EntryList role="list">
         {entries
-          ? entries.map(({ text, author, _id, color, tempId, createdAt }) => (
+          ? entries.map(({ text, author, _id, color, tempId, createdAt,isChecked }) => (
               <li key={_id ?? tempId}>
                 <Entry
                   text={text}
@@ -34,6 +34,8 @@ export default function App() {
                   _id={_id}
                   onClick={() => handleDeleteEntry(_id)}
                   createdAt={createdAt}
+                  isChecked={isChecked}
+                  onCheck={()=> handleCheck(_id)}
                 />
               </li>
             ))
@@ -84,6 +86,19 @@ export default function App() {
     });
     mutateEntries();
   }
+  
+  async function handleCheck(_id) {
+    const filteredEntries = entries.filter(entry => entry._id !== _id);
+    mutateEntries(filteredEntries, false);
+
+    await fetch('/api/entries/mark-as-done', {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ _id }),
+    });
+    mutateEntries();
 }
 
 const EntryList = styled.ul`

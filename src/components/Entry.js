@@ -1,10 +1,29 @@
 import styled from 'styled-components';
 import dayjs from 'dayjs';
+import ScreenReaderOnly from './ScreenReaderOnly';
 
-export default function Entry({ text, author, color, onClick, createdAt }) {
+export default function Entry({
+  text,
+  author,
+  color,
+  onClick,
+  createdAt,
+  _id,
+  onCheck,
+  isChecked,
+}) {
   return (
     <Card onClick={onClick} color={color}>
       {text} ({author})
+      <label htmlFor={'mark-done' + _id}>
+        <ScreenReaderOnly>Mark as done</ScreenReaderOnly>
+      </label>
+      <input
+        type="checkbox"
+        id={'mark-done' + _id}
+        onChange={onCheck}
+        checked={isChecked}
+      ></input>
       <small>{dayjs(createdAt).format('DD.MM.YYYY HH:mm')}</small>
     </Card>
   );
